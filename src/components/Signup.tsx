@@ -1,47 +1,95 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {View, StyleSheet, TextInput, TouchableOpacity, Text, Keyboard, TouchableWithoutFeedback} from 'react-native';
 import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
+    const [firstName, setFirstName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
-    const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<string>('');
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
     const handleAlreadyExists = () => {
         navigation.navigate('Login');
     };
-
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+    const storeFirstname = (): Promise<void> => {
+        return AsyncStorage.setItem('Firstname', firstName);
+    };
     const handleSignIn = async (): Promise<void> => {
-        setIsSignedIn(true);
+        if (password !== confirmPassword) {
+            setErrorMsg('Passwords do not match');
+            return;
+        }
+        const emailRegex = /\S+@\S+\.\S+/;
+        if (!emailRegex.test(email)) {
+            setErrorMsg('Invalid email');
+            return;
+        }
+        if (password.length < 8) {
+            setErrorMsg('Password must be at least 8 characters');
+            return;
+        }
+        if (firstName.length < 2) {
+            setErrorMsg('Username must be at least 2 characters');
+            return;
+        }
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/user?email=${email}`);
+            if (response.data.length > 0) {
+                setErrorMsg('Email already exists');
+                return;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        const user = {
+            firstName,
+            email,
+            password,
+        };
+        try {
+            const response = await axios.post('http://127.0.0.1:8000/user', user);
+            console.log(response);
+        } catch (error) {
+            console.error(error);
+        }
+        storeFirstname();
         try {
             await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
+            navigation.navigate('Home');
           } catch (error) {
             console.error('Error storing sign-in status in AsyncStorage:', error);
           }
     };
-    useEffect(() => {
-        checkSignInStatus();
-      }, []);
-
-      const checkSignInStatus = async () => {
-        try {
-          const storedSignInStatus = await AsyncStorage.getItem('isSignedIn');
-          if (storedSignInStatus !== null) {
-            setIsSignedIn(JSON.parse(storedSignInStatus));
-          }
-        } catch (error) {
-          console.error('Error reading sign-in status from AsyncStorage:', error);
-        }
-      };
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
+                <View style={styles.inputView}>
+                    <TextInput
+                    style={styles.TextInput}
+                    placeholder="Username"
+                    placeholderTextColor="#003f5c"
+                    secureTextEntry={true}
+                    onChangeText={(username) => setFirstName(username)}
+                    value={firstName}
+                    />
+                </View>
                 <View style={styles.inputView}>
                     <TextInput
                     style={styles.TextInput}
@@ -59,21 +107,38 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                     style={styles.TextInput}
                     placeholder="Password"
                     placeholderTextColor="#003f5c"
-                    secureTextEntry={true}
+                    secureTextEntry={!showPassword}
                     onChangeText={(userPassword) => setPassword(userPassword)}
                     value={password}
                     />
+                    <TouchableOpacity onPress={togglePasswordVisibility}>
+                        <Icon
+                        name={showPassword ? 'eye-slash' : 'eye'}
+                        size={20}
+                        color="#003f5c"
+                        style={styles.eyeIcon}
+                        />
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.inputView}>
                     <TextInput
                     style={styles.TextInput}
                     placeholder="Confirm Password"
                     placeholderTextColor="#003f5c"
-                    secureTextEntry={true}
+                    secureTextEntry={!showConfirmPassword}
                     onChangeText={(userConfirmPassword) => setConfirmPassword(userConfirmPassword)}
                     value={confirmPassword}
                     />
+                    <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
+                        <Icon
+                        name={showConfirmPassword ? 'eye-slash' : 'eye'}
+                        size={20}
+                        color="#003f5c"
+                        style={styles.eyeIcon}
+                        />
+                    </TouchableOpacity>
                 </View>
+                <Text style={{color: 'red'}}>{errorMsg}</Text>
                 <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
                     <Text style={styles.loginText}>SIGNUP</Text>
                 </TouchableOpacity>
@@ -93,12 +158,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
       },
     inputView: {
+        flexDirection: 'row',
         backgroundColor: '#FFC0CB',
         borderRadius: 30,
         width: '70%',
         height: 45,
-        marginBottom: 20,
-        alignItems: 'center',
+        marginTop: 20,
+    },
+    eyeIcon: {
+        marginLeft: 10,
+        position: 'absolute',
+        top: 10,
+        right: 10,
     },
     TextInput: {
         height: 50,

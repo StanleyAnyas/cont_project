@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
 import React, {useState, createContext, useEffect} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -9,13 +10,9 @@ import Login from './src/components/Login';
 import Signup from './src/components/Signup';
 import Setting from './src/components/Setting';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {StatusBar} from 'react-native';
+import {StatusBar, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  DefaultTheme,
-  DarkTheme,
-  NavigationContainer,
-} from '@react-navigation/native';
+import { DefaultTheme, DarkTheme, NavigationContainer} from '@react-navigation/native';
 import {useColorScheme} from 'react-native';
 
 export const ThemeContext = createContext({toggleTheme: () => {}, isDarkTheme: true});
@@ -54,79 +51,95 @@ const Stack = createStackNavigator();
 const App = (): JSX.Element => {
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(false);
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
-  const toggleTheme = (): void => {
-    setIsDarkTheme(!isDarkTheme);
-  };
+  const [checked, setChecked] = useState<boolean>(false);
+
   let scheme = useColorScheme();
   const theme = isDarkTheme ? 'dark' : 'light';
   scheme = theme;
 
   useEffect(() => {
-    // Check AsyncStorage for the user's sign-in status when the app starts
+    const checkSignInStatus = async () => {
+      setChecked(false);
+      try {
+        const storedSignInStatus = await AsyncStorage.getItem('isSignedIn');
+        if (storedSignInStatus !== null) {
+          setIsSignedIn(JSON.parse(storedSignInStatus));
+        }
+      } catch (error) {
+        console.error('Error reading sign-in status from AsyncStorage:', error);
+      } finally {
+        setChecked(true);
+      }
+    };
+
+    const getUserThemePreference = async () => {
+      try {
+        const storedUserThemePreference = await AsyncStorage.getItem('userThemePreference');
+        if (storedUserThemePreference !== null) {
+          setIsDarkTheme(JSON.parse(storedUserThemePreference));
+        }
+      } catch (error) {
+        console.error('Error reading user theme preference from AsyncStorage:', error);
+      }
+    };
+
     checkSignInStatus();
+    getUserThemePreference();
   }, []);
 
-  const checkSignInStatus = async () => {
+  const toggleTheme = (): void => {
+    setIsDarkTheme(!isDarkTheme);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const storeUserThemePreference = async (): Promise<void> => {
     try {
-      const storedSignInStatus = await AsyncStorage.getItem('isSignedIn');
-      if (storedSignInStatus !== null) {
-        setIsSignedIn(JSON.parse(storedSignInStatus));
-      }
+      await AsyncStorage.setItem('userThemePreference', JSON.stringify(isDarkTheme));
     } catch (error) {
-      console.error('Error reading sign-in status from AsyncStorage:', error);
+      console.error('Error storing user theme preference in AsyncStorage:', error);
     }
   };
+
+  useEffect(() => {
+    storeUserThemePreference();
+  }, [isDarkTheme, storeUserThemePreference]);
+
   return (
-    <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar
-        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
-      />
-      <ThemeContext.Provider value={{toggleTheme, isDarkTheme}}>
-        {isSignedIn ? (
-          <Tab.Navigator
-            screenOptions={({route}) => ({
-              tabBarIcon: ({focused, color, size}) => {
-                return iconImage(route.name, {focused, color, size});
-              },
-            })}>
-            <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
-            <Tab.Screen name="News" component={News} options={{title: 'News'}} />
-            <Tab.Screen
-              name="Profile"
-              component={Profile}
-              options={{title: 'Profile'}}
-            />
-            <Tab.Screen
-              name="Setting"
-              component={Setting}
-              options={{title: 'Setting'}}
-            />
-          </Tab.Navigator>
-        ) : (
-        <Stack.Navigator
-          initialRouteName="Signup"
-          screenOptions={{
-            headerShown: false,
-            animationEnabled: true,
-            transitionSpec: {
-              open: {animation: 'timing', config: {duration: 0}},
-              close: {animation: 'timing', config: {duration: 0}},
-            },
-          }}>
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{title: 'Login'}}
-          />
-          <Stack.Screen
-            name="Signup"
-            component={Signup}
-            options={{title: 'Signup'}}
-          />
-        </Stack.Navigator>
-        )}
-      </ThemeContext.Provider>
-    </NavigationContainer>
+      <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
+        <ThemeContext.Provider value={{toggleTheme, isDarkTheme}}>
+        {checked ? (
+          isSignedIn ? (
+            <Tab.Navigator screenOptions={({route}) => ({ tabBarIcon: ({focused, color, size}) => {
+                  return iconImage(route.name, {focused, color, size});
+                },
+              })}>
+              <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
+              <Tab.Screen name="News" component={News} options={{title: 'News'}} />
+              <Tab.Screen name="Profile" component={Profile} options={{title: 'Profile'}} />
+              <Tab.Screen name="Setting" component={Setting} options={{title: 'Setting'}} />
+            </Tab.Navigator>
+            ) : (
+              <Stack.Navigator
+                initialRouteName="Login"
+                screenOptions={{
+                  headerShown: false,
+                  animationEnabled: true,
+                  transitionSpec: {
+                    open: {animation: 'timing', config: {duration: 0}},
+                    close: {animation: 'timing', config: {duration: 0}},
+                  },
+                }}>
+                <Stack.Screen name="Login" component={Login} options={{title: 'Login'}} />
+                <Stack.Screen name="Signup" component={Signup} options={{title: 'Signup'}} />
+                <Stack.Screen name="Home" component={Home} options={{title: 'Home'}} />
+              </Stack.Navigator>
+            )
+          ) : (
+            <ActivityIndicator style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 80}} size="large" />
+          )}
+        </ThemeContext.Provider>
+      </NavigationContainer>
   );
 };
 
