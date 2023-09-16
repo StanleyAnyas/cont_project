@@ -14,20 +14,20 @@ function Home(): JSX.Element {
 
 const {colors} = useTheme();
 const textColor = colors.text;
-const [email, setEmail] = React.useState<string>('');
+const [Firstname, setFirstname] = React.useState<string>('');
 
-const getEmails = async (): Promise<void> => {
+const getFirstnames = async (): Promise<void> => {
   try {
-    const storedEmail = await AsyncStorage.getItem('email');
-    if (storedEmail !== null) {
-      setEmail(storedEmail);
+    const storedFirstname = await AsyncStorage.getItem('Firstname');
+    if (storedFirstname !== null) {
+      setFirstname(storedFirstname);
     }
   } catch (error) {
-    console.error('Error reading email from AsyncStorage:', error);
+    console.error('Error reading Firstname from AsyncStorage:', error);
   }
 };
 
-getEmails();
+getFirstnames();
 
   return (
     <SafeAreaView>
@@ -35,7 +35,7 @@ getEmails();
       <ScrollView>
         <View style={{backgroundColor: colors.background}}>
             <Text style={{color: textColor}}>Homie</Text>
-            <Text style={{color: textColor}}>Welcome {email}</Text>
+            <Text style={{color: textColor}}>Welcome {Firstname}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

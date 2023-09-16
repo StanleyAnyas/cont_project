@@ -9,6 +9,8 @@ import Home from './src/components/Home';
 import Login from './src/components/Login';
 import Signup from './src/components/Signup';
 import Setting from './src/components/Setting';
+import Successful from './src/components/Successful';
+import ForgotPassword from './src/components/ForgotPassword';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -132,6 +134,8 @@ const App = (): JSX.Element => {
                 }}>
                 <Stack.Screen name="Login" component={Login} options={{title: 'Login'}} />
                 <Stack.Screen name="Signup" component={Signup} options={{title: 'Signup'}} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{title: 'ForgotPassword'}} />
+                <Stack.Screen name="Successful" component={Successful} options={{title: 'Successful'}} />
                 <Stack.Screen name="Home" component={Home} options={{title: 'Home'}} />
               </Stack.Navigator>
             )

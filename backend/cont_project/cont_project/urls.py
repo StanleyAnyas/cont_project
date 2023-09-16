@@ -21,4 +21,7 @@ from myapp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^user$', views.user),
+    path('loginUser', views.loginUser),
+    re_path(r'^checkEmail$', views.checkEmail),
+    path('addUser/', views.addUser),
 ]

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, SafeAreaView, StatusBar, ScrollView, TouchableOpacity} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,7 +7,7 @@ import { NavigationProp, ParamListBase} from '@react-navigation/native';
 // import { useNavigation } from '@react-navigation/native';
 
 const Profile = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
-  // const navigation = useNavigation();
+  const [email, setEmail] = useState<string>('');
   const {colors} = useTheme();
   const textColor = colors.text;
   const backgroundColor = colors.background;
@@ -16,13 +16,26 @@ const Profile = ({navigation}: { navigation: NavigationProp<ParamListBase> }): J
     try {
       const storedSignInStatus = await AsyncStorage.getItem('isSignedIn');
       if (storedSignInStatus !== null) {
-        await AsyncStorage.setItem('isSignedIn', '');
+        await AsyncStorage.removeItem('isSignedIn');
         navigation.navigate('Login');
       }
     } catch (error) {
       console.error('Error removing sign-in status from AsyncStorage:', error);
     }
   };
+  const getEmail = async (): Promise<void> => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('email');
+      if (storedEmail !== null) {
+        setEmail(storedEmail);
+      }
+    } catch (error) {
+      console.error('Error reading email from AsyncStorage:', error);
+    }
+  };
+  useEffect(() => {
+    getEmail();
+  }, []);
   const handleLogout = (): void => {
     removeSignInStatus();
   };
@@ -32,6 +45,7 @@ const Profile = ({navigation}: { navigation: NavigationProp<ParamListBase> }): J
         <ScrollView>
             <View style={{backgroundColor: backgroundColor}}>
                 <Text style={{color: textColor}}>Profile</Text>
+                <Text style={{color: textColor}}>Email: {email}</Text>
                 <TouchableOpacity onPress={handleLogout}>
                     <Text style={{color: textColor}}>Logout</Text>
                 </TouchableOpacity>

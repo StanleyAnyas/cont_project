@@ -2,17 +2,18 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
 import React, {useState} from 'react';
-import {View, StyleSheet, TextInput, TouchableOpacity, Text, Keyboard, TouchableWithoutFeedback} from 'react-native';
+import {View, StyleSheet, TextInput, TouchableOpacity, Text, Keyboard, TouchableWithoutFeedback, ActivityIndicator} from 'react-native';
 import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
 
-const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
+const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [retrieveData, setRetrieveData] = useState<boolean>(false);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -22,26 +23,78 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
         return AsyncStorage.setItem('email', email);
     };
     const handleAlreadyExists = () => {
+        setEmail('');
+        setPassword('');
         navigation.navigate('Signup');
     };
-    const storeUsername = (username: string): Promise<void> => {
-        return AsyncStorage.setItem('username', username);
-    };
-
-    const handleSignIn = async (): Promise<void> => {
+    const removeStoredFirstname = async (): Promise<void> => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/user?email=${email}`);
-            if (response.data.length === 0) {
-                setErrorMsg('Email does not exist');
-                return;
+            const storedFirstname = await AsyncStorage.getItem('Firstname');
+            if (storedFirstname !== null) {
+                await AsyncStorage.removeItem('Firstname');
             }
-            if (response.data[0].password !== password) {
-                setErrorMsg('Incorrect password');
-                return;
-            }
-            await storeUsername(response.data[0].username);
         } catch (error) {
-            console.error(error);
+            console.error('Error removing Firstname from AsyncStorage:', error);
+        }
+    };
+    const storeUsername = (username: string): Promise<void> => {
+        return AsyncStorage.setItem('Firstname', username);
+    };
+    const removeStoredEmail = async (): Promise<void> => {
+        try {
+            const storedEmail = await AsyncStorage.getItem('email');
+            if (storedEmail !== null) {
+                await AsyncStorage.removeItem('email');
+            }
+        } catch (error) {
+            console.error('Error removing email from AsyncStorage:', error);
+        }
+    };
+    const handleForgotPassword = () => {
+        setEmail('');
+        setPassword('');
+        navigation.navigate('ForgotPassword');
+    };
+    const handleSignIn = async (): Promise<void> => {
+        setRetrieveData(true);
+        setErrorMsg('');
+        removeStoredEmail();
+        removeStoredFirstname();
+        if (password === '' || email === '') {
+            setRetrieveData(false);
+            setErrorMsg('Please fill in all fields');
+            setTimeout(() => {
+                setErrorMsg('');
+            }
+            , 5000);
+            return;
+        }
+        const credentials: object = {
+            email: email,
+            pwd: password,
+        };
+        try {
+            const response = await axios.post('http://10.0.2.2:8000/loginUser', credentials);
+            console.log(response.data.user);
+            if (response.status === 200) {
+                const user = response.data.user;
+                await storeUsername(user.firstname);
+            } else if (response.status === 401) {
+                setRetrieveData(false);
+                setErrorMsg('Invalid email or password');
+                setTimeout(() => {
+                    setErrorMsg('');
+                }, 5000);
+                return;
+            }
+        } catch (error) {
+            setRetrieveData(false);
+            console.error('Error signing in:', error);
+            setErrorMsg('Error signing in');
+            setTimeout(() => {
+                setErrorMsg('');
+            }, 5000);
+            return;
         }
         storeEmail();
         try {
@@ -55,6 +108,13 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
+            {retrieveData ? (
+                <View style={styles.activityIndicatorContainer}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                </View>
+            ) : (
+            <View style={styles.loginFieldsContainer}>
+                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>Login</Text>
                 <View style={styles.inputView}>
                     <TextInput
                     style={styles.TextInput}
@@ -89,10 +149,15 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                 <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
                     <Text style={styles.loginText}>LOGIN</Text>
                 </TouchableOpacity>
-                <View style={{paddingTop: 7}}>
+                <TouchableOpacity style={styles.forgot_button} onPress={handleForgotPassword}>
+                    <Text style={{color: 'blue'}}>Forgot Password?</Text>
+                </TouchableOpacity>
+                <View style={{paddingTop: 2}}>
                     <TouchableOpacity onPress={handleAlreadyExists}><Text>Don't have an account Signup</Text></TouchableOpacity>
                 </View>
             </View>
+            )}
+        </View>
         </TouchableWithoutFeedback>
     );
 };
@@ -100,15 +165,15 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
       },
     inputView: {
         flexDirection: 'row',
         backgroundColor: '#FFC0CB',
         borderRadius: 30,
-        width: '70%',
+        width: '85%',
         height: 45,
         marginTop: 20,
     },
@@ -119,8 +184,10 @@ const styles = StyleSheet.create({
         marginLeft: 20,
     },
     forgot_button: {
-        height: 30,
-        marginBottom: 10,
+        height: 20,
+        marginBottom: 4,
+        marginTop: 4,
+        color: 'blue',
     },
     loginBtn: {
         width: '50%',
@@ -132,6 +199,7 @@ const styles = StyleSheet.create({
     },
     loginText: {
         color: 'white',
+        fontWeight: 'bold',
     },
     eyeIcon: {
         marginLeft: 10,
@@ -139,6 +207,22 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
     },
+    activityIndicatorContainer: {
+        position: 'absolute',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Transparent background
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      loginFieldsContainer: {
+        width: '90%',
+        padding: 20,
+        borderRadius: 10,
+        backgroundColor: 'white',
+        elevation: 5,
+        alignItems: 'center',
+      },
 });
 
-export default Signup;
+export default Login;
