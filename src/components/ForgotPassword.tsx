@@ -54,19 +54,19 @@ const ForgotPassword = ({navigation}: { navigation: NavigationProp<ParamListBase
             newPassword,
         };
         try {
-            const responce = await axios.put('http://10.0.2.2:8000/user', data);
+            const responce = await axios.post('http://10.0.2.2:8000/updateUser', data);
             console.log(responce.data.message);
-            if (responce.data === 'User does not exist') {
+            if (responce.data.message !== 'Password reset successful') {
                 setErrorMsg('Email does not exist');
                 setTimeoutToErrorMsg();
                 return;
             }
-            if (responce.data === 'Password reset failed') {
-                setErrorMsg('Password reset failed');
-                setTimeoutToErrorMsg();
-                return;
-            }
-            if (responce.status === 405) {
+            // if (responce.data.message !== 'Password reset successful') {
+            //     setErrorMsg('Password reset failed');
+            //     setTimeoutToErrorMsg();
+            //     return;
+            // }
+            if (responce.status === 404) {
                 setErrorMsg('Password reset failed');
                 setTimeoutToErrorMsg();
                 return;
@@ -109,7 +109,7 @@ const ForgotPassword = ({navigation}: { navigation: NavigationProp<ParamListBase
                         />
                         <TouchableOpacity onPress={togglePasswordVisibility}>
                             <Icon
-                            name={showConfirmPassword ? 'eye-slash' : 'eye'}
+                            name={showPassword ? 'unlock-alt' : 'lock'}
                             size={20}
                             color="#003f5c"
                             style={styles.eyeIcon}
@@ -127,7 +127,7 @@ const ForgotPassword = ({navigation}: { navigation: NavigationProp<ParamListBase
                         />
                         <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
                             <Icon
-                            name={showPassword ? 'eye-slash' : 'eye'}
+                            name={showConfirmPassword ? 'unlock-alt' : 'lock'}
                             size={20}
                             color="#003f5c"
                             style={styles.eyeIcon}

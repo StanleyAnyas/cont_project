@@ -101,47 +101,48 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
             email: email,
         };
         try {
-            const response = await axios.get('http://10.0.2.2:8000/checkEmail', userEmail);
+            const response = await axios.post('http://10.0.2.2:8000/checkEmail', userEmail);
+            console.log(response.data.message);
             if (response.data.message === 'User already exists') {
                 setRetrieveData(false);
                 setErrorMsg('Email already exists');
                 setTimeoutToErrorMsg();
                 return;
-            }
-            console.log(response.data.message);
-        } catch (error) {
-            setRetrieveData(false);
-            console.error(error);
-            setErrorMsg('Error signing up');
-            setTimeoutToErrorMsg();
-            return;
-        }
+            } else {
+                const user = {
+                    firstname: firstName,
+                    email: email,
+                    pwd: password,
+                };
 
-        const user = {
-            firstname: firstName,
-            email: email,
-            pwd: password,
-        };
-        try {
-            const response = await axios.post('http://10.0.2.2:8000/addUser', user);
-            if (response.status === 200) {
-                setRetrieveData(false);
+                try {
+                    const response2 = await axios.post('http://10.0.2.2:8000/addUser', user);
+                    if (response2.status === 200) {
+                        setRetrieveData(false);
+                    }
+                } catch (error) {
+                    setRetrieveData(false);
+                    console.error(error);
+                    setErrorMsg('Error signing up');
+                    setTimeoutToErrorMsg();
+                    return;
+                }
+                storeFirstname();
+                storeEmail();
+                    try {
+                        await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
+                        navigation.navigate('Home');
+                    } catch (error) {
+                        console.error('Error storing sign-in status in AsyncStorage:', error);
+                    }
             }
         } catch (error) {
             setRetrieveData(false);
-            console.error(error);
+            console.error('error2' + error);
             setErrorMsg('Error signing up');
             setTimeoutToErrorMsg();
             return;
         }
-        storeFirstname();
-        storeEmail();
-        try {
-            await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
-            navigation.navigate('Home');
-          } catch (error) {
-            console.error('Error storing sign-in status in AsyncStorage:', error);
-          }
     };
 
     return (
@@ -186,7 +187,7 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                         />
                         <TouchableOpacity onPress={togglePasswordVisibility}>
                             <Icon
-                            name={showPassword ? 'eye-slash' : 'eye'}
+                            name={showPassword ? 'unlock-alt' : 'lock'}
                             size={20}
                             color="#003f5c"
                             style={styles.eyeIcon}
@@ -204,7 +205,7 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                         />
                         <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
                             <Icon
-                            name={showConfirmPassword ? 'eye-slash' : 'eye'}
+                            name={showConfirmPassword ? 'unlock-alt' : 'lock'}
                             size={20}
                             color="#003f5c"
                             style={styles.eyeIcon}

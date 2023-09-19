@@ -22,50 +22,43 @@ def user(request):
         serializer = UserSerializer(data, context={'request': request}, many=True)
 
         return Response(serializer.data)
-    
-    elif request.method == 'PUT':
-        # retrive the data from the request
-        data = request.data
-        print(data)
-        email = data.get('email', '')
-        password = data.get('pwd', '')
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        # reset password
-        user.pwd = make_password(password)
-        user.save()
-        return Response({'message': 'Password reset successful'}, status=status.HTTP_201_CREATED)
 
-@api_view(['POST', 'GET'])
+@api_view(['POST'])
 def loginUser(request):
     if request.method == 'POST':
         email = request.data.get('email', '')
         password = request.data.get('pwd', '')
+        # trim the password
+        password = password.strip()
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = UserSerializer(user, context={'request': request})
-        pwdCheck = check_password(password, serializer.data['pwd'])
+            return Response({'message': 'User does not exist'})
+        pwdCheck = user.check_password(password)
+        print(pwdCheck)
         if pwdCheck:  
-            return Response({'message': 'Login successful', 'user': serializer.data}, status=status.HTTP_200_OK)
+            serializers = UserSerializer(user, context={'request': request})
+            serializers_data = serializers.data
+            return Response({'message': 'Login successful', 'user': serializers_data}, status=status.HTTP_200_OK)
         elif not pwdCheck:
+            print('Login failed')
             return Response({'message': 'Login failed'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response({'message': 'Login failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def checkEmail(request):
-    if request.method == 'GET':
-        email = request.query_params.get('email', '')
+    if request.method == 'POST':
+        email = request.data.get('email', '')
+        print(email)
         try:
             user = User.objects.get(email=email)
+            print(user.email)
+            print('Email not verified')
             if user:
                 return Response({'message': 'User already exists'})
         except User.DoesNotExist:
-             return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+            print('User not found')
+            return Response({'message': 'User does not exist'})
          
 @api_view(['POST'])
 def addUser(request):
@@ -77,3 +70,26 @@ def addUser(request):
             return Response({'message': 'OK'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+@api_view(['GET', 'POST'])
+def updateUser(request):
+    if request.method == 'POST':
+        email = request.data.get('email', '')
+        password = request.data.get('newPassword', '')
+        print(email)
+        print(password)
+        # trim the password
+        password = password.strip()
+        # check if user exists
+        try:
+            user = User.objects.get(email=email)
+            print(user.email)
+            print('User exists')
+        except User.DoesNotExist:
+            print('User does not exist')
+            return Response({'message': 'User does not exist'})
+        # reset password
+        user.set_password(password)
+        print(user.pwd)
+        user.save()
+        return Response({'message': 'Password reset successful'}, status=status.HTTP_201_CREATED)
+    return Response({'message': 'Password reset failed'}, status=status.HTTP_400_BAD_REQUEST)

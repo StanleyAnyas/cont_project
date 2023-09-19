@@ -75,13 +75,14 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
         };
         try {
             const response = await axios.post('http://10.0.2.2:8000/loginUser', credentials);
-            console.log(response.data.user);
-            if (response.status === 200) {
+            const responseMessage = response.data.message;
+            console.log(responseMessage);
+            if (responseMessage === 'Login successful') {
                 const user = response.data.user;
                 await storeUsername(user.firstname);
-            } else if (response.status === 401) {
+            } else if (responseMessage === 'User does not exist') {
                 setRetrieveData(false);
-                setErrorMsg('Invalid email or password');
+                setErrorMsg('Invalid credentials');
                 setTimeout(() => {
                     setErrorMsg('');
                 }, 5000);
@@ -138,7 +139,7 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
                     />
                     <TouchableOpacity onPress={togglePasswordVisibility}>
                         <Icon
-                        name={showPassword ? 'eye-slash' : 'eye'}
+                        name={showPassword ? 'unlock-alt' : 'lock'}
                         size={20}
                         color="#003f5c"
                         style={styles.eyeIcon}
