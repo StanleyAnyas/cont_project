@@ -91,14 +91,21 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 # settings.py
+from config import EMAIL_BACKEND
+from config import EMAIL_HOST
+from config import EMAIL_PORT
+from config import EMAIL_USE_TLS
+from config import EMAIL_USE_SSL
+from config import EMAIL_HOST_USER
+from config import EMAIL_HOST_PASSWORD
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'anyassorstanley@gmail.com'
-EMAIL_HOST_PASSWORD = 'cnrxwfrfjvxrmbnl'
+EMAIL_BACKEND = EMAIL_BACKEND
+EMAIL_HOST = EMAIL_HOST
+EMAIL_PORT = EMAIL_PORT
+EMAIL_USE_TLS = EMAIL_USE_TLS
+EMAIL_USE_SSL = EMAIL_USE_SSL
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 
 AUTH_PASSWORD_VALIDATORS = [
     {

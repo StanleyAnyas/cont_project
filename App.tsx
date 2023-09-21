@@ -14,6 +14,7 @@ import ForgotPassword from './src/components/ForgotPassword';
 import Authenticate from './src/components/Authenticate';
 import EmailForgotPassword from './src/components/EmailForgotPassword';
 import TokenForgotPassword from './src/components/TokenForgotPassword';
+import LandingPage from './src/components/LandingPage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -156,7 +157,7 @@ const App = (): JSX.Element => {
                 )
                 : (
                   <Stack.Navigator
-                    initialRouteName="Login"
+                    initialRouteName="LandingPage"
                     initialRouteParams={{isSignedIn: isSignedIn}}
                     screenOptions={{
                       headerShown: false,
@@ -166,6 +167,7 @@ const App = (): JSX.Element => {
                         close: {animation: 'timing', config: {duration: 0}},
                       },
                     }}>
+                    <Stack.Screen name="LandingPage" component={LandingPage} options={{title: 'LandingPage'}} />
                     <Stack.Screen name="Login" component={Login} options={{title: 'Login'}} />
                     <Stack.Screen name="Signup" component={Signup} options={{title: 'Signup'}} />
                     <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{title: 'ForgotPassword'}} />

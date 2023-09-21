@@ -47,6 +47,14 @@ def loginUser(request):
         print(pwdCheck)
         print(user.verified)
         if pwdCheck and user.verified:
+            # send email to user
+            send_mail(
+                'Login Notification',
+                'This is to notify you that your account was recently logged into. If this was not you, please reset your password.',
+                'Login Notification',
+                [email],
+                fail_silently=False,
+            )
             serializers = UserSerializer(user, context={'request': request})
             serializers_data = serializers.data
             return Response({'message': 'Login successful', 'user': serializers_data}, status=status.HTTP_200_OK)
