@@ -7,6 +7,7 @@ import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { AuthContext } from '../../App';
 
 const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
     const [firstName, setFirstName] = useState<string>('');
@@ -17,6 +18,8 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
     const [retrieveData, setRetrieveData] = useState<boolean>(false);
+
+    const { signUp } = React.useContext(AuthContext);
 
     const handleAlreadyExists = () => {
         setFirstName('');
@@ -118,6 +121,7 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                 try {
                     const response2 = await axios.post('http://10.0.2.2:8000/addUser', user);
                     if (response2.status === 200) {
+                        navigation.navigate('Authenticate', {email: email});
                         setRetrieveData(false);
                     }
                 } catch (error) {
@@ -131,7 +135,7 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
                 storeEmail();
                     try {
                         await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
-                        navigation.navigate('Home');
+                        navigation.navigate('Authenticate', {email: email});
                     } catch (error) {
                         console.error('Error storing sign-in status in AsyncStorage:', error);
                     }

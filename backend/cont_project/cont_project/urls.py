@@ -25,4 +25,8 @@ urlpatterns = [
     path('checkEmail', views.checkEmail),
     path('addUser', views.addUser),
     path('updateUser', views.updateUser),
+    path('authUser', views.authUser),
+    path('resendToken', views.resendToken),
+    path('sendToken', views.sendToken),
+    path('verifyToken', views.verifyToken),
 ]

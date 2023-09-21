@@ -13,7 +13,14 @@ class User(models.Model):
     lastname = models.CharField(db_column='lastName', max_length=225, blank=True, null=True)  # Field name made lowercase.
     email = models.CharField(max_length=225, blank=True, null=True)
     pwd = models.CharField(max_length=225, blank=True, null=True)
+    verified = models.BooleanField(default=False)
 
     class Meta:
         managed = False
         db_table = 'user'
+
+class UserToken(models.Model):
+    email = models.EmailField(unique=True)
+    token = models.PositiveIntegerField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified = models.BooleanField(default=False)

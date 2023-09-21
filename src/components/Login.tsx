@@ -7,6 +7,7 @@ import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
+import { AuthContext } from '../../App';
 
 const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
     const [email, setEmail] = useState<string>('');
@@ -14,6 +15,8 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [retrieveData, setRetrieveData] = useState<boolean>(false);
+
+    const { signIn } = React.useContext(AuthContext);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -53,7 +56,7 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
     const handleForgotPassword = () => {
         setEmail('');
         setPassword('');
-        navigation.navigate('ForgotPassword');
+        navigation.navigate('EmailForgotPassword');
     };
     const handleSignIn = async (): Promise<void> => {
         setRetrieveData(true);
@@ -80,7 +83,15 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
             if (responseMessage === 'Login successful') {
                 const user = response.data.user;
                 await storeUsername(user.firstname);
+                signIn();
             } else if (responseMessage === 'User does not exist') {
+                setRetrieveData(false);
+                setErrorMsg('Invalid credentials');
+                setTimeout(() => {
+                    setErrorMsg('');
+                }, 5000);
+                return;
+            } else if (responseMessage === 'Login failed') {
                 setRetrieveData(false);
                 setErrorMsg('Invalid credentials');
                 setTimeout(() => {
@@ -100,7 +111,7 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
         storeEmail();
         try {
             await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
-            navigation.navigate('Home');
+            signIn();
           } catch (error) {
             console.error('Error storing sign-in status in AsyncStorage:', error);
           }

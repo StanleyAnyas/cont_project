@@ -11,6 +11,9 @@ import Signup from './src/components/Signup';
 import Setting from './src/components/Setting';
 import Successful from './src/components/Successful';
 import ForgotPassword from './src/components/ForgotPassword';
+import Authenticate from './src/components/Authenticate';
+import EmailForgotPassword from './src/components/EmailForgotPassword';
+import TokenForgotPassword from './src/components/TokenForgotPassword';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +21,7 @@ import { DefaultTheme, DarkTheme, NavigationContainer} from '@react-navigation/n
 import {useColorScheme} from 'react-native';
 
 export const ThemeContext = createContext({toggleTheme: () => {}, isDarkTheme: true});
+export const AuthContext = createContext({signIn: () => {}, signOut: () => {}, signUp: () => {}});
 const Tab = createBottomTabNavigator();
 
 const CustomIcon = ({name, size, color}: { name: string; size: number; color: string;}): JSX.Element => {
@@ -93,6 +97,32 @@ const App = (): JSX.Element => {
     setIsDarkTheme(!isDarkTheme);
   };
 
+  const signIn = async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
+      setIsSignedIn(true);
+    } catch (error) {
+      console.error('Error storing sign-in status in AsyncStorage:', error);
+    }
+  };
+
+  const signOut = async (): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem('isSignedIn');
+      setIsSignedIn(false);
+    } catch (error) {
+      console.error('Error removing sign-in status from AsyncStorage:', error);
+    }
+  };
+
+  const signUp = async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem('isSignedIn', JSON.stringify(true));
+      setIsSignedIn(true);
+    } catch (error) {
+      console.error('Error storing sign-in status in AsyncStorage:', error);
+    }
+  };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const storeUserThemePreference = async (): Promise<void> => {
     try {
@@ -108,41 +138,47 @@ const App = (): JSX.Element => {
 
   return (
       <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthContext.Provider value={{signIn, signOut, signUp}}>
         <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
-        <ThemeContext.Provider value={{toggleTheme, isDarkTheme}}>
-        {checked ? (
-          isSignedIn ? (
-            <Tab.Navigator screenOptions={({route}) => ({ tabBarIcon: ({focused, color, size}) => {
-                  return iconImage(route.name, {focused, color, size});
-                },
-              })}>
-              <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
-              <Tab.Screen name="News" component={News} options={{title: 'News'}} />
-              <Tab.Screen name="Profile" component={Profile} options={{title: 'Profile'}} />
-              <Tab.Screen name="Setting" component={Setting} options={{title: 'Setting'}} />
-            </Tab.Navigator>
-            ) : (
-              <Stack.Navigator
-                initialRouteName="Login"
-                screenOptions={{
-                  headerShown: false,
-                  animationEnabled: true,
-                  transitionSpec: {
-                    open: {animation: 'timing', config: {duration: 0}},
-                    close: {animation: 'timing', config: {duration: 0}},
-                  },
-                }}>
-                <Stack.Screen name="Login" component={Login} options={{title: 'Login'}} />
-                <Stack.Screen name="Signup" component={Signup} options={{title: 'Signup'}} />
-                <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{title: 'ForgotPassword'}} />
-                <Stack.Screen name="Successful" component={Successful} options={{title: 'Successful'}} />
-                <Stack.Screen name="Home" component={Home} options={{title: 'Home'}} />
-              </Stack.Navigator>
-            )
-          ) : (
-            <ActivityIndicator style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 80}} size="large" />
-          )}
-        </ThemeContext.Provider>
+            {checked ? (
+              isSignedIn ? (
+                <ThemeContext.Provider value={{toggleTheme, isDarkTheme}}>
+                <Tab.Navigator screenOptions={({route}) => ({ tabBarIcon: ({focused, color, size}) => {
+                      return iconImage(route.name, {focused, color, size});
+                    },
+                  })}>
+                  <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
+                  <Tab.Screen name="News" component={News} options={{title: 'News'}} />
+                  <Tab.Screen name="Profile" component={Profile} options={{title: 'Profile'}} />
+                  <Tab.Screen name="Setting" component={Setting} options={{title: 'Setting'}} />
+                </Tab.Navigator>
+                </ThemeContext.Provider>
+                )
+                : (
+                  <Stack.Navigator
+                    initialRouteName="Login"
+                    initialRouteParams={{isSignedIn: isSignedIn}}
+                    screenOptions={{
+                      headerShown: false,
+                      animationEnabled: true,
+                      transitionSpec: {
+                        open: {animation: 'timing', config: {duration: 0}},
+                        close: {animation: 'timing', config: {duration: 0}},
+                      },
+                    }}>
+                    <Stack.Screen name="Login" component={Login} options={{title: 'Login'}} />
+                    <Stack.Screen name="Signup" component={Signup} options={{title: 'Signup'}} />
+                    <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{title: 'ForgotPassword'}} />
+                    <Stack.Screen name="Authenticate" component={Authenticate} options={{title: 'Authenticate'}} />
+                    <Stack.Screen name="EmailForgotPassword" component={EmailForgotPassword} options={{title: 'EmailForgotPassword'}} />
+                    <Stack.Screen name="TokenForgotPassword" component={TokenForgotPassword} options={{title: 'TokenForgotPassword'}} />
+                    <Stack.Screen name="Successful" component={Successful} options={{title: 'Successful'}} />
+                  </Stack.Navigator>
+                )
+              ) : (
+                <ActivityIndicator style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 80}} size="large" />
+              )}
+        </AuthContext.Provider>
       </NavigationContainer>
   );
 };
