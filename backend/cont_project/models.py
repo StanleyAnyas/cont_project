@@ -14,6 +14,7 @@ class User(models.Model):
     email = models.CharField(max_length=225, blank=True, null=True)
     pwd = models.CharField(max_length=225, blank=True, null=True)
     verified = models.BooleanField(default=False)
+    profile_picture = models.CharField(max_length=225, blank=True, null=True)
 
     class Meta:
         managed = False

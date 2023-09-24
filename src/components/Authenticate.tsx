@@ -9,8 +9,10 @@ import { Button } from 'react-native-paper';
 import axios from 'axios';
 import { AuthContext } from '../../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-const Authenticate = ({route}: {route: any}): JSX.Element => {
+const Authenticate = ({route, navigation}: { navigation: NavigationProp<ParamListBase>, route: any }): JSX.Element => {
     const [authCode, setAuthCode] = useState<Number>();
     const [authenticating, setAuthenticating] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
@@ -101,35 +103,42 @@ const Authenticate = ({route}: {route: any}): JSX.Element => {
     };
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-        {authenticating ? (
-                <View style={styles.activityIndicatorContainer}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-            ) : (
-            <View style={styles.authenticatedFieldsContainer}>
-                <Text>Enter the code sent to your email</Text>
-                <View style={styles.inputView}>
-                        <TextInput
-                        style={styles.TextInput}
-                        textContentType="oneTimeCode"
-                        keyboardType="numeric"
-                        autoCapitalize="none"
-                        placeholder="Enter token"
-                        placeholderTextColor="#003f5c"
-                        onChangeText={(userAuthCode) => setAuthCode(Number(userAuthCode))}
-                        value={authCode?.toString()}
-                        />
-                </View>
-                <Button onPress={resendToken}>
-                    <Text>Resend code</Text>
-                </Button>
-                <Text style={{color: 'red'}}>{errorMsg}</Text>
-                <TouchableOpacity style={styles.submitButton} onPress={handleAuth}>
-                    <Text>Submit</Text>
+        <View style={{flex: 1, backgroundColor: 'white'}}>
+            <View style={{flexDirection: 'row', paddingTop: 40, paddingLeft: 10}}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Icon name="arrow-left" size={25} color="#636666" />
                 </TouchableOpacity>
             </View>
-            )}
+            <View style={styles.container}>
+            {authenticating ? (
+                    <View style={styles.activityIndicatorContainer}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    </View>
+                ) : (
+                <View style={styles.authenticatedFieldsContainer}>
+                    <Text>Enter the code sent to your email</Text>
+                    <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            textContentType="oneTimeCode"
+                            keyboardType="numeric"
+                            autoCapitalize="none"
+                            placeholder="Enter token"
+                            placeholderTextColor="#003f5c"
+                            onChangeText={(userAuthCode) => setAuthCode(Number(userAuthCode))}
+                            value={authCode?.toString()}
+                            />
+                    </View>
+                    <Button onPress={resendToken}>
+                        <Text>Resend code</Text>
+                    </Button>
+                    <Text style={{color: 'red'}}>{errorMsg}</Text>
+                    <TouchableOpacity style={styles.submitButton} onPress={handleAuth}>
+                        <Text>Submit</Text>
+                    </TouchableOpacity>
+                </View>
+                )}
+            </View>
         </View>
     </TouchableWithoutFeedback>
   );

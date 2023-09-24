@@ -6,6 +6,7 @@ class User(models.Model):
     email = models.CharField(max_length=225, blank=True, null=True)
     pwd = models.CharField(max_length=225, blank=True, null=True)
     verified = models.BooleanField(default=False)
+    profile_picture = models.CharField(max_length=225, blank=True, null=True)
     def set_password(self, password):
         self.pwd = make_password(password)
         
@@ -13,6 +14,11 @@ class User(models.Model):
         print(self.pwd)
         print(password)
         return check_password(password, self.pwd) # type: ignore
+    
+    def delete_profile_picture(self):
+        self.profile_picture = None
+        self.save()
+    
     # def save(self, *args, **kwargs):
     #     # Hash the password before saving
     #     if self.pwd:

@@ -119,57 +119,64 @@ const Login = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-            {retrieveData ? (
-                <View style={styles.activityIndicatorContainer}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-            ) : (
-            <View style={styles.loginFieldsContainer}>
-                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>Login</Text>
-                <View style={styles.inputView}>
-                    <TextInput
-                    style={styles.TextInput}
-                    textContentType="emailAddress"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholder="Email"
-                    placeholderTextColor="#003f5c"
-                    onChangeText={(userEmail) => setEmail(userEmail)}
-                    value={email}
-                    />
-                </View>
-                <View style={styles.inputView}>
-                    <TextInput
-                    style={styles.TextInput}
-                    placeholder="Password"
-                    placeholderTextColor="#003f5c"
-                    secureTextEntry={!showPassword}
-                    onChangeText={(userPassword) => setPassword(userPassword)}
-                    value={password}
-                    />
-                    <TouchableOpacity onPress={togglePasswordVisibility}>
-                        <Icon
-                        name={showPassword ? 'unlock-alt' : 'lock'}
-                        size={20}
-                        color="#003f5c"
-                        style={styles.eyeIcon}
-                        />
+            <View style={{flex: 1, backgroundColor: 'white'}}>
+                <View style={{flexDirection: 'row', paddingTop: 40, paddingLeft: 10}}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Icon name="arrow-left" size={25} color="#636666" />
                     </TouchableOpacity>
                 </View>
-                <Text style={{color: 'red'}}>{errorMsg}</Text>
-                <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
-                    <Text style={styles.loginText}>LOGIN</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.forgot_button} onPress={handleForgotPassword}>
-                    <Text style={{color: 'blue'}}>Forgot Password?</Text>
-                </TouchableOpacity>
-                <View style={{paddingTop: 2}}>
-                    <TouchableOpacity onPress={handleAlreadyExists}><Text>Don't have an account Signup</Text></TouchableOpacity>
+                <View style={styles.container}>
+                    {retrieveData ? (
+                        <View style={styles.activityIndicatorContainer}>
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        </View>
+                    ) : (
+                    <View style={styles.loginFieldsContainer}>
+                            <Text style={{fontSize: 20, fontWeight: 'bold'}}>Login</Text>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            textContentType="emailAddress"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            placeholder="Email"
+                            placeholderTextColor="#003f5c"
+                            onChangeText={(userEmail) => setEmail(userEmail)}
+                            value={email}
+                            />
+                        </View>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            placeholder="Password"
+                            placeholderTextColor="#003f5c"
+                            secureTextEntry={!showPassword}
+                            onChangeText={(userPassword) => setPassword(userPassword)}
+                            value={password}
+                            />
+                            <TouchableOpacity onPress={togglePasswordVisibility}>
+                                <Icon
+                                name={showPassword ? 'unlock-alt' : 'lock'}
+                                size={20}
+                                color="#003f5c"
+                                style={styles.eyeIcon}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={{color: 'red'}}>{errorMsg}</Text>
+                        <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
+                            <Text style={styles.loginText}>LOGIN</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.forgot_button} onPress={handleForgotPassword}>
+                            <Text style={{color: 'blue'}}>Forgot Password?</Text>
+                        </TouchableOpacity>
+                        <View style={{paddingTop: 2}}>
+                            <TouchableOpacity onPress={handleAlreadyExists}><Text>Don't have an account Signup</Text></TouchableOpacity>
+                        </View>
+                    </View>
+                    )}
                 </View>
             </View>
-            )}
-        </View>
         </TouchableWithoutFeedback>
     );
 };

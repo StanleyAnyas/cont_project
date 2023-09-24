@@ -7,7 +7,6 @@ import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { AuthContext } from '../../App';
 
 const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
     const [firstName, setFirstName] = useState<string>('');
@@ -18,8 +17,6 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
     const [retrieveData, setRetrieveData] = useState<boolean>(false);
-
-    const { signUp } = React.useContext(AuthContext);
 
     const handleAlreadyExists = () => {
         setFirstName('');
@@ -94,6 +91,13 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
             setTimeoutToErrorMsg();
             return;
         }
+        let passwordRegex: RegExp = /^(?=.*\d)+(?=.*[a-z])(?=.*[A-Z]?)+(?=.*[!#$£€@%&¨'*+=^_`´|~()\-\s.]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            setRetrieveData(false);
+            setErrorMsg('Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character');
+            setTimeoutToErrorMsg();
+            return;
+        }
         if (firstName.length < 2) {
             setRetrieveData(false);
             setErrorMsg('Username must be at least 2 characters');
@@ -151,80 +155,87 @@ const Signup = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JS
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-                {retrieveData ? (
-                    <View style={styles.activityIndicatorContainer}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                    </View>
-                ) : (
-                <View style={styles.loginFieldsContainer}>
-                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>Create Account</Text>
-                    <View style={styles.inputView}>
-                        <TextInput
-                        style={styles.TextInput}
-                        placeholder="Username"
-                        placeholderTextColor="#003f5c"
-                        onChangeText={(username) => setFirstName(username)}
-                        value={firstName}
-                        />
-                    </View>
-                    <View style={styles.inputView}>
-                        <TextInput
-                        style={styles.TextInput}
-                        textContentType="emailAddress"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        placeholder="Email"
-                        placeholderTextColor="#003f5c"
-                        onChangeText={(userEmail) => setEmail(userEmail)}
-                        value={email}
-                        />
-                    </View>
-                    <View style={styles.inputView}>
-                        <TextInput
-                        style={styles.TextInput}
-                        placeholder="Password"
-                        placeholderTextColor="#003f5c"
-                        secureTextEntry={!showPassword}
-                        onChangeText={(userPassword) => setPassword(userPassword)}
-                        value={password}
-                        />
-                        <TouchableOpacity onPress={togglePasswordVisibility}>
-                            <Icon
-                            name={showPassword ? 'unlock-alt' : 'lock'}
-                            size={20}
-                            color="#003f5c"
-                            style={styles.eyeIcon}
-                            />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.inputView}>
-                        <TextInput
-                        style={styles.TextInput}
-                        placeholder="Confirm Password"
-                        placeholderTextColor="#003f5c"
-                        secureTextEntry={!showConfirmPassword}
-                        onChangeText={(userConfirmPassword) => setConfirmPassword(userConfirmPassword)}
-                        value={confirmPassword}
-                        />
-                        <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
-                            <Icon
-                            name={showConfirmPassword ? 'unlock-alt' : 'lock'}
-                            size={20}
-                            color="#003f5c"
-                            style={styles.eyeIcon}
-                            />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={{color: 'red'}}>{errorMsg}</Text>
-                    <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
-                        <Text style={styles.loginText}>SIGNUP</Text>
+            <View style={{flex: 1, backgroundColor: 'white'}}>
+                <View style={{flexDirection: 'row', paddingTop: 40, paddingLeft: 10}}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Icon name="arrow-left" size={25} color="#636666" />
                     </TouchableOpacity>
-                    <View style={{paddingTop: 7}}>
-                        <TouchableOpacity onPress={handleAlreadyExists}><Text>Already have an account? Login</Text></TouchableOpacity>
-                    </View>
                 </View>
-                )}
+                <View style={styles.container}>
+                    {retrieveData ? (
+                        <View style={styles.activityIndicatorContainer}>
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        </View>
+                    ) : (
+                    <View style={styles.loginFieldsContainer}>
+                        <Text style={{fontSize: 20, fontWeight: 'bold'}}>Create Account</Text>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            placeholder="Username"
+                            placeholderTextColor="#003f5c"
+                            onChangeText={(username) => setFirstName(username)}
+                            value={firstName}
+                            />
+                        </View>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            textContentType="emailAddress"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            placeholder="Email"
+                            placeholderTextColor="#003f5c"
+                            onChangeText={(userEmail) => setEmail(userEmail)}
+                            value={email}
+                            />
+                        </View>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            placeholder="Password"
+                            placeholderTextColor="#003f5c"
+                            secureTextEntry={!showPassword}
+                            onChangeText={(userPassword) => setPassword(userPassword)}
+                            value={password}
+                            />
+                            <TouchableOpacity onPress={togglePasswordVisibility}>
+                                <Icon
+                                name={showPassword ? 'unlock-alt' : 'lock'}
+                                size={20}
+                                color="#003f5c"
+                                style={styles.eyeIcon}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.inputView}>
+                            <TextInput
+                            style={styles.TextInput}
+                            placeholder="Confirm Password"
+                            placeholderTextColor="#003f5c"
+                            secureTextEntry={!showConfirmPassword}
+                            onChangeText={(userConfirmPassword) => setConfirmPassword(userConfirmPassword)}
+                            value={confirmPassword}
+                            />
+                            <TouchableOpacity onPress={toggleConfirmPasswordVisibility}>
+                                <Icon
+                                name={showConfirmPassword ? 'unlock-alt' : 'lock'}
+                                size={20}
+                                color="#003f5c"
+                                style={styles.eyeIcon}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={{color: 'red'}}>{errorMsg}</Text>
+                        <TouchableOpacity style={styles.loginBtn} onPress={handleSignIn}>
+                            <Text style={styles.loginText}>SIGNUP</Text>
+                        </TouchableOpacity>
+                        <View style={{paddingTop: 7}}>
+                            <TouchableOpacity onPress={handleAlreadyExists}><Text>Already have an account? Login</Text></TouchableOpacity>
+                        </View>
+                    </View>
+                    )}
+                </View>
             </View>
         </TouchableWithoutFeedback>
     );

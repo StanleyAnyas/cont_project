@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         flex: 2,
         justifyContent: 'flex-end',
+        width: '100%',
     },
     loginButton: {
         backgroundColor: '#fcfafc',

@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {Text, View, StyleSheet, TouchableWithoutFeedback, Keyboard, TextInput, TouchableOpacity, ActivityIndicator} from 'react-native';
 import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const EmailForgotPassword = ({navigation}: { navigation: NavigationProp<ParamListBase> }): JSX.Element => {
     const [Email, setEmail] = useState<string>('');
@@ -52,32 +53,39 @@ const EmailForgotPassword = ({navigation}: { navigation: NavigationProp<ParamLis
     };
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-            {SendingToken ? (
-                    <View style={styles.activityIndicatorContainer}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                    </View>
-                ) : (
-                <View style={styles.authenticatedFieldsContainer}>
-                    <Text>Enter the email address associated with your account</Text>
-                    <View style={styles.inputView}>
-                            <TextInput
-                            style={styles.TextInput}
-                            textContentType="emailAddress"
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            placeholder="Enter your email address"
-                            placeholderTextColor="#003f5c"
-                            onChangeText={(userEmail) => setEmail(userEmail)}
-                            value={Email}
-                            />
-                    </View>
-                    <Text style={{color: 'red'}}>{errorMsg}</Text>
-                    <TouchableOpacity style={styles.submitButton} onPress={handleEmail}>
-                        <Text>Submit</Text>
+            <View style={{flex: 1, backgroundColor: 'white'}}>
+                <View style={{flexDirection: 'row', paddingTop: 40, paddingLeft: 10}}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Icon name="arrow-left" size={25} color="#636666" />
                     </TouchableOpacity>
                 </View>
-                )}
+                <View style={styles.container}>
+                {SendingToken ? (
+                        <View style={styles.activityIndicatorContainer}>
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        </View>
+                    ) : (
+                    <View style={styles.authenticatedFieldsContainer}>
+                        <Text>Enter the email address associated with your account</Text>
+                        <View style={styles.inputView}>
+                                <TextInput
+                                style={styles.TextInput}
+                                textContentType="emailAddress"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                placeholder="Enter your email address"
+                                placeholderTextColor="#003f5c"
+                                onChangeText={(userEmail) => setEmail(userEmail)}
+                                value={Email}
+                                />
+                        </View>
+                        <Text style={{color: 'red'}}>{errorMsg}</Text>
+                        <TouchableOpacity style={styles.submitButton} onPress={handleEmail}>
+                            <Text style={styles.submitText}>Submit</Text>
+                        </TouchableOpacity>
+                    </View>
+                    )}
+                </View>
             </View>
         </TouchableWithoutFeedback>
       );
@@ -127,6 +135,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#FF1494',
+    },
+    submitText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
 

@@ -29,4 +29,6 @@ urlpatterns = [
     path('resendToken', views.resendToken),
     path('sendToken', views.sendToken),
     path('verifyToken', views.verifyToken),
+    path('addProfilePicture', views.addProfilePicture),
+    path('getProfilePicture', views.getProfilePicture),
 ]

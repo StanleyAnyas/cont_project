@@ -36,6 +36,7 @@ def loginUser(request):
     if request.method == 'POST':
         email = request.data.get('email', '')
         password = request.data.get('pwd', '')
+        print(email)
         # trim the password
         password = password.strip()
         try:
@@ -51,7 +52,7 @@ def loginUser(request):
             send_mail(
                 'Login Notification',
                 'This is to notify you that your account was recently logged into. If this was not you, please reset your password.',
-                'Login Notification',
+                'Stanley App',
                 [email],
                 fail_silently=False,
             )
@@ -103,11 +104,15 @@ def addUser(request):
 @api_view(['POST'])
 def resendToken(request):
     if request.method == 'POST':
-        email = request.data.get('email')
+        email = request.data.get('email', '')
+        # print(sent_email)
+        # email = sent_email['email']
+        print(email)
         # check if the email already has a token
         try:
             userToken = UserToken.objects.get(email=email)
-            if userToken:
+            print(userToken)
+            if userToken and not userToken.verified:
                 # delete the token
                 userToken.delete()
         except UserToken.DoesNotExist:
@@ -115,6 +120,7 @@ def resendToken(request):
         # generate a new token
         token = get_random_number(6)
         # send email
+        print(email)
         send_mail(
             'Email Verification',
             'Your verification code is ' + str(token),
@@ -125,21 +131,22 @@ def resendToken(request):
         # store the token in the database with the email
         userToken = UserToken(email=email, token=token)
         userToken.save()
-        return Response({'message': 'OK'}, status=status.HTTP_201_CREATED)
-    return Response({'message': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'OK'})
+    return Response({'message': 'Invalid token'})
 
 
 @api_view(['POST'])
 def authUser(request):
     if request.method == 'POST':
-        email = request.data.get('email')
+        sent_email = request.data.get('email')
         token = request.data.get('authCode')
-        print(email)
+        email = sent_email['email']
         print(token)
         try:
-            userToken = UserToken.objects.get(email=email, token=token)
-            userToken.verified = True
-            userToken.save()
+            userToken = UserToken.objects.get(email=email, token=token, verified=False)
+            print(userToken)
+            # userToken.verified = True
+            # userToken.save()
             if userToken:
                 # delete the token
                 userToken.delete()
@@ -148,10 +155,11 @@ def authUser(request):
                 if not user.verified:
                     user.verified = True
                     user.save()
-            return Response({'message': 'Authentication successful'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Authentication successful'})
         except UserToken.DoesNotExist:
+            print('User token does not exist')
             return Response({'message': 'Invalid token'})
-    return Response({'message': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Invalid token'})
 
 
 @api_view(['GET', 'POST'])
@@ -220,3 +228,52 @@ def verifyToken(request):
         except UserToken.DoesNotExist:
             return Response({'message': 'Invalid token'})
     return Response({'message': 'Invalid token'})
+
+# def sanitizeProfilePicture(profilePicture):
+#     if profilePicture.startswith('data:image/jpeg;base64,'):
+#         profilePicture = profilePicture.replace('data:image/jpeg;base64,', '')
+#     elif profilePicture.startswith('data:image/png;base64,'):
+#         profilePicture = profilePicture.replace('data:image/png;base64,', '')
+#     return profilePicture
+
+@api_view(['POST'])
+def addProfilePicture(request):
+    if request.method == 'POST':
+        email = request.data.get('email')
+        profilePicture = request.data.get('imageUri')
+        print(email)
+        print(profilePicture)
+        try:
+            user = User.objects.get(email=email)
+            if user:
+                # sanity check
+                if user.profile_picture:
+                    # delete the old profile picture
+                    user.delete_profile_picture()
+                user.profile_picture = profilePicture
+                print(user.profile_picture)
+                # sanitize the profile picture
+                # profilePicture = sanitizeProfilePicture(profilePicture)
+                user.save()
+                return Response({'message': 'Profile picture added'})
+        except User.DoesNotExist:
+            return Response({'message': 'User does not exist'})
+    return Response({'message': 'Profile picture not added'})
+
+@api_view(['POST'])
+def getProfilePicture(request):
+    if request.method == 'POST':
+        email = request.data.get('email')
+        print(email)
+        try:
+            user = User.objects.get(email=email)
+            if user:
+                # sanity check
+                if user.profile_picture:
+                    print(user.profile_picture)
+                    return Response({'message': 'Profile picture found', 'profilePicture': user.profile_picture})
+                else:
+                    return Response({'message': 'Profile picture not found'})
+        except User.DoesNotExist:
+            return Response({'message': 'User does not exist'})
+    return Response({'message': 'Profile picture not found'})

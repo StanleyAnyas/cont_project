@@ -15,11 +15,13 @@ import Authenticate from './src/components/Authenticate';
 import EmailForgotPassword from './src/components/EmailForgotPassword';
 import TokenForgotPassword from './src/components/TokenForgotPassword';
 import LandingPage from './src/components/LandingPage';
+import ShowError from './src/components/ShowError';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DefaultTheme, DarkTheme, NavigationContainer} from '@react-navigation/native';
 import {useColorScheme} from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 
 export const ThemeContext = createContext({toggleTheme: () => {}, isDarkTheme: true});
 export const AuthContext = createContext({signIn: () => {}, signOut: () => {}, signUp: () => {}});
@@ -51,6 +53,37 @@ const iconImage = (route: string, {focused, color, size}: {focused: boolean; col
   }
 
   return <CustomIcon name={iconName} size={size} color={color} />;
+};
+const CheckInternetConnection = ({ children }: { children: JSX.Element }) => {
+  const [isConnected, setIsConnected] = useState<boolean | undefined>(undefined);
+
+  // Callback function to handle connection state changes
+  const handleConnectionChange = (state) => {
+    setIsConnected(state.isConnected);
+  };
+
+  useEffect(() => {
+    // Add the event listener and use the callback function
+    const unsubscribe = NetInfo.addEventListener(handleConnectionChange);
+
+    // Return a cleanup function to remove the event listener
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  console.log('isConnected:', isConnected);
+
+  return isConnected === undefined ? (
+    // Render a loading state or placeholder if the connection status is not determined yet
+    <ActivityIndicator style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 80}} size="large" />
+  ) : isConnected ? (
+    // Render the children when the user is connected
+    children
+  ) : (
+    // Render an error message when there's no internet connection
+    <ShowError message="No Internet connection" isConnected={isConnected} />
+  );
 };
 
 const Stack = createStackNavigator();
@@ -137,28 +170,29 @@ const App = (): JSX.Element => {
     storeUserThemePreference();
   }, [isDarkTheme, storeUserThemePreference]);
 
+
   return (
       <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthContext.Provider value={{signIn, signOut, signUp}}>
         <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
+          <CheckInternetConnection>
             {checked ? (
               isSignedIn ? (
                 <ThemeContext.Provider value={{toggleTheme, isDarkTheme}}>
-                <Tab.Navigator screenOptions={({route}) => ({ tabBarIcon: ({focused, color, size}) => {
-                      return iconImage(route.name, {focused, color, size});
-                    },
-                  })}>
-                  <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
-                  <Tab.Screen name="News" component={News} options={{title: 'News'}} />
-                  <Tab.Screen name="Profile" component={Profile} options={{title: 'Profile'}} />
-                  <Tab.Screen name="Setting" component={Setting} options={{title: 'Setting'}} />
-                </Tab.Navigator>
+                  <Tab.Navigator screenOptions={({route}) => ({ tabBarIcon: ({focused, color, size}) => {
+                        return iconImage(route.name, {focused, color, size});
+                      },
+                    })}>
+                    <Tab.Screen name="Home" component={Home} options={{title: 'Home'}} />
+                    <Tab.Screen name="News" component={News} options={{title: 'News'}} />
+                    <Tab.Screen name="Profile" component={Profile} options={{title: 'Profile'}} />
+                    <Tab.Screen name="Setting" component={Setting} options={{title: 'Setting'}} />
+                  </Tab.Navigator>
                 </ThemeContext.Provider>
                 )
                 : (
                   <Stack.Navigator
                     initialRouteName="LandingPage"
-                    initialRouteParams={{isSignedIn: isSignedIn}}
                     screenOptions={{
                       headerShown: false,
                       animationEnabled: true,
@@ -180,6 +214,7 @@ const App = (): JSX.Element => {
               ) : (
                 <ActivityIndicator style={{flex: 1, justifyContent: 'center', alignItems: 'center', height: 80}} size="large" />
               )}
+          </CheckInternetConnection>
         </AuthContext.Provider>
       </NavigationContainer>
   );

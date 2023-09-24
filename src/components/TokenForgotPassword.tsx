@@ -7,9 +7,10 @@ import React, {useState, useEffect} from 'react';
 import {Text, View, StyleSheet, TouchableWithoutFeedback, Keyboard, TextInput, TouchableOpacity, ActivityIndicator} from 'react-native';
 import { NavigationProp, ParamListBase} from '@react-navigation/native';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const TokenForgotPassword = ({route, navigation}: { navigation: NavigationProp<ParamListBase>, route: any }): JSX.Element => {
-    const [token, setToken] = useState<Number>();
+    const [token, setToken] = useState<number>();
     const [verifyingToken, setVerifyingToken] = useState<boolean>(false);
     const [errorMsg, setErrorMsg] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -34,6 +35,11 @@ const TokenForgotPassword = ({route, navigation}: { navigation: NavigationProp<P
             setTimeoutToErrorMsg();
             return;
         }
+        if (token.toString().length !== 6) {
+            setErrorMsg('Token must be 6 digits');
+            setTimeoutToErrorMsg();
+            return;
+        }
         setVerifyingToken(true);
         const data: object = {
             email: email,
@@ -43,6 +49,7 @@ const TokenForgotPassword = ({route, navigation}: { navigation: NavigationProp<P
             const response = await axios.post('http://10.0.2.2:8000/verifyToken', data);
             console.log(response.data.message);
             if (response.data.message === 'Authentication successful') {
+                setToken(undefined);
                 setVerifyingToken(false);
                 navigation.navigate('ForgotPassword', {email: email});
             } else if (response.data.message === 'Invalid token') {
@@ -77,35 +84,42 @@ const TokenForgotPassword = ({route, navigation}: { navigation: NavigationProp<P
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-            {verifyingToken ? (
-                    <View style={styles.activityIndicatorContainer}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                    </View>
-                ) : (
-                <View style={styles.authenticatedFieldsContainer}>
-                    <Text>Enter the code sent to {email}</Text>
-                    <View style={styles.inputView}>
-                            <TextInput
-                            style={styles.TextInput}
-                            textContentType="oneTimeCode"
-                            keyboardType="numeric"
-                            autoCapitalize="none"
-                            placeholder="Enter token"
-                            placeholderTextColor="#003f5c"
-                            onChangeText={(userAuthCode) => setToken(Number(userAuthCode))}
-                            value={token?.toString()}
-                            />
-                    </View>
-                    <TouchableOpacity style={styles.resend_button} onPress={resendToken}>
-                        <Text>Resend code</Text>
-                    </TouchableOpacity>
-                    <Text style={{color: 'red'}}>{errorMsg}</Text>
-                    <TouchableOpacity style={styles.submitButton} onPress={handleToken}>
-                        <Text>Submit</Text>
+            <View style={{flex: 1, backgroundColor: 'white'}}>
+                <View style={{flexDirection: 'row', paddingTop: 40, paddingLeft: 10}}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Icon name="arrow-left" size={25} color="#636666" />
                     </TouchableOpacity>
                 </View>
-                )}
+                <View style={styles.container}>
+                {verifyingToken ? (
+                        <View style={styles.activityIndicatorContainer}>
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        </View>
+                    ) : (
+                    <View style={styles.authenticatedFieldsContainer}>
+                        <Text style={styles.text}>Enter the code sent to {email}</Text>
+                        <View style={styles.inputView}>
+                                <TextInput
+                                style={styles.TextInput}
+                                textContentType="oneTimeCode"
+                                keyboardType="numeric"
+                                autoCapitalize="none"
+                                placeholder="Enter token"
+                                placeholderTextColor="#003f5c"
+                                onChangeText={(userAuthCode) => setToken(Number(userAuthCode))}
+                                value={token?.toString()}
+                                />
+                        </View>
+                        <TouchableOpacity style={styles.resend_button} onPress={resendToken}>
+                            <Text style={styles.resend_text}>Resend code</Text>
+                        </TouchableOpacity>
+                        <Text style={{color: 'red'}}>{errorMsg}</Text>
+                        <TouchableOpacity style={styles.submitButton} onPress={handleToken}>
+                            <Text style={styles.submitText}>Submit</Text>
+                        </TouchableOpacity>
+                    </View>
+                    )}
+                </View>
             </View>
         </TouchableWithoutFeedback>
       );
@@ -161,6 +175,22 @@ const styles = StyleSheet.create({
         marginBottom: 4,
         marginTop: 4,
         color: 'blue',
+    },
+    submitText: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    resend_text: {
+        color: 'blue',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    text: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#252626',
     },
 });
 
